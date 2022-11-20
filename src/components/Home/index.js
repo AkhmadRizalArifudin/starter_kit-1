@@ -1,16 +1,27 @@
-import React, { Component } from 'react';
+import React, { Component, useEffect, useState  } from 'react';
 import Web3 from 'web3';
 import './index.css';
 import Meme from '../../abis/Meme.json'
+
+import { useDispatch, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
+import moment from 'moment';
+
+import { verifyTokenAsync, userLogoutAsync } from "../../asyncActions/authAsyncActions";
+import { userLogout, verifyTokenEnd } from "../../actions/authActions";
+
+import { setAuthToken } from '../../services/auth';
+import { getUserListService } from '../../services/user';
 
 const ipfsClient = require('ipfs-http-client')
 const ipfs = ipfsClient({host:'localhost',port:5001,protocol:'http'})
 
 class Home extends Component {
 
-  async componentWillMount(){
+  async componentDidMount(){
     await this.loadWeb3()
     await this.loadBlockchainData()
+    // await this.getUserList()
   }
 
   // Get account
@@ -45,6 +56,7 @@ class Home extends Component {
       buffer: null,
       account: '',
       memeHash: '',
+      userList: [],
     };
     // this.handleChange = this.handleChange.bind(this);
     // this.handleSubmit = this.handleSubmit.bind(this);
@@ -87,7 +99,80 @@ class Home extends Component {
       })
     })
   }
+
+  // const dispatch = useDispatch();
+  // const authObj = useSelector(state => state.auth);
+
+  // const { user, token, expiredAt } = authObj;
+  // const [userList, setUserList] = useState([]);
+
+  // handle click event of the logout button
+  handleLogout = () => {
+    this.props.userLogoutAsync();
+  }
+
+  // get user list
+  getUserList = async () => {
+    const result = await getUserListService();
+    if (result.error) {
+      this.props.verifyTokenEnd();
+      if (result.response && [401, 403].includes(result.response.status))
+      this.props.userLogout();
+      return;
+    }
+    this.setState({userList: result.data});
+  }
+
+  // set timer to renew token
+  componentDidMount(){
+    const expiredAt = this.props.expiredAt;
+    const token = this.props.token;
+    setAuthToken(token);
+    const verifyTokenTimer = setTimeout(() => {
+      this.props.verifyTokenAsync(true);
+    }, moment(expiredAt).diff() - 10 * 1000);
+    return () => {
+      clearTimeout(verifyTokenTimer);
+    }
+  }
+
+  componentDidUpdate(){
+    const expiredAt = this.props.expiredAt;
+    const token = this.props.token;
+    setAuthToken(token);
+    const verifyTokenTimer = setTimeout(() => {
+      this.props.verifyTokenAsync(true);
+    }, moment(expiredAt).diff() - 10 * 1000);
+    return () => {
+      clearTimeout(verifyTokenTimer);
+    }
+  }
+
+  // useEffect(() => {
+  //   setAuthToken(token);
+  //   const verifyTokenTimer = setTimeout(() => {
+  //     dispatch(verifyTokenAsync(true));
+  //   }, moment(expiredAt).diff() - 10 * 1000);
+  //   return () => {
+  //     clearTimeout(verifyTokenTimer);
+  //   }
+  // }, [expiredAt, token]);
+
+  // get user list on page load
+  componentDidMount(){
+    this.getUserList();
+  }
+
+  componentDidUpdate(){
+    this.getUserList();
+  }
+
+  // useEffect(() => {
+  //   getUserList();
+  // }, []);
+
   render() {
+    
     return (
       <div>
         <nav className="navbar navbar-dark fixed-top bg-dark flex-md-nowrap p-0 shadow">
@@ -131,4 +216,10 @@ class Home extends Component {
   }
 }
 
-export default Home;
+const mapStateToProps = state => ({
+  user: state.auth.user,
+  token: state.auth.token,
+  expiredAt: state.auth.expiredAt,
+});
+
+export default connect(mapStateToProps, {verifyTokenAsync, userLogoutAsync, userLogout, verifyTokenEnd })(Home);
