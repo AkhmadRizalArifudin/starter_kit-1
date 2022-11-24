@@ -19,9 +19,12 @@ const ipfs = ipfsClient({host:'localhost',port:5001,protocol:'http'})
 class Home extends Component {
 
   async componentDidMount(){
+    
     await this.loadWeb3()
+    await this.timer()
     await this.loadBlockchainData()
     // await this.getUserList()
+    
   }
 
   // Get account
@@ -107,65 +110,57 @@ class Home extends Component {
   // const [userList, setUserList] = useState([]);
 
   // handle click event of the logout button
-  handleLogout = () => {
-    this.props.userLogoutAsync();
-  }
+  // handleLogout = () => {
+  //   this.props.userLogoutAsync();
+  // }
 
-  // get user list
-  getUserList = async () => {
-    const result = await getUserListService();
-    if (result.error) {
-      this.props.verifyTokenEnd();
-      if (result.response && [401, 403].includes(result.response.status))
-      this.props.userLogout();
-      return;
-    }
-    this.setState({userList: result.data});
-  }
-
-  // set timer to renew token
-  componentDidMount(){
-    const expiredAt = this.props.expiredAt;
-    const token = this.props.token;
-    setAuthToken(token);
-    const verifyTokenTimer = setTimeout(() => {
-      this.props.verifyTokenAsync(true);
-    }, moment(expiredAt).diff() - 10 * 1000);
-    return () => {
-      clearTimeout(verifyTokenTimer);
-    }
-  }
-
-  componentDidUpdate(){
-    const expiredAt = this.props.expiredAt;
-    const token = this.props.token;
-    setAuthToken(token);
-    const verifyTokenTimer = setTimeout(() => {
-      this.props.verifyTokenAsync(true);
-    }, moment(expiredAt).diff() - 10 * 1000);
-    return () => {
-      clearTimeout(verifyTokenTimer);
-    }
-  }
-
-  // useEffect(() => {
-  //   setAuthToken(token);
-  //   const verifyTokenTimer = setTimeout(() => {
-  //     dispatch(verifyTokenAsync(true));
-  //   }, moment(expiredAt).diff() - 10 * 1000);
-  //   return () => {
-  //     clearTimeout(verifyTokenTimer);
+  // // get user list
+  // getUserList = async () => {
+  //   const result = await getUserListService();
+  //   if (result.error) {
+  //     this.props.verifyTokenEnd();
+  //     if (result.response && [401, 403].includes(result.response.status))
+  //     this.props.userLogout();
+  //     return;
   //   }
-  // }, [expiredAt, token]);
+  //   this.setState({userList: result.data});
+  // }
 
-  // get user list on page load
-  componentDidMount(){
-    this.getUserList();
+  // // set timer to renew token
+  // async componentDidMount(){
+    
+  // }
+
+  async timer(){
+    const expiredAt = this.props.expiredAt;
+    const token = this.props.token;
+    setAuthToken(token);
+    const verifyTokenTimer = setTimeout(() => {
+      this.props.verifyTokenAsync(true);
+    }, moment(expiredAt).diff() - 10 * 1000);
+    return () => {
+      clearTimeout(verifyTokenTimer);
+    }
   }
 
-  componentDidUpdate(){
-    this.getUserList();
-  }
+  // // useEffect(() => {
+  // //   setAuthToken(token);
+  // //   const verifyTokenTimer = setTimeout(() => {
+  // //     dispatch(verifyTokenAsync(true));
+  // //   }, moment(expiredAt).diff() - 10 * 1000);
+  // //   return () => {
+  // //     clearTimeout(verifyTokenTimer);
+  // //   }
+  // // }, [expiredAt, token]);
+
+  // // get user list on page load
+  // componentDidMount(){
+  //   this.getUserList();
+  // }
+
+  // componentDidUpdate(){
+  //   this.getUserList();
+  // }
 
   // useEffect(() => {
   //   getUserList();
@@ -199,7 +194,7 @@ class Home extends Component {
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  <img src={'http://127.0.0.1:8080/ipfs/'+this.state.memeHash} />
+                  <img crossOrigin="anonymous" src={'http://127.0.0.1:8080/ipfs/'+this.state.memeHash} />
                 </a>
                 <p>&nbsp;</p>
                 <h2>Change Meme</h2>

@@ -3,6 +3,7 @@ import { BrowserRouter, Switch, NavLink, Redirect } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 
 import Login from './pages/Login';
+// import Dashboard from './pages/Dashboard';
 import Dashboard from './components/Home';
 
 import PrivateRoute from './routes/PrivateRoute';
